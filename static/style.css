@@ -1,0 +1,23 @@
+body{
+    font-family: Nunito,sans-serif;
+}
+#body{
+    margin: 1em 10%;
+}
+/* register css start */
+.registerform{
+    margin-bottom: 1em;
+}
+.registerform>div{
+    margin-top: 1em;
+}
+.regisetrpagegrid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1em;
+    width: fit-content;
+}
+#registercheck1, #registercheck2{
+    width:fit-content;
+}
+/* register css end */
