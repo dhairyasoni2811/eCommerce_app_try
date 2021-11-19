@@ -1,0 +1,196 @@
+{% extends "layout.html" %} 
+{% block style %}
+    <style>
+        #item_image{
+            height: auto;
+            width: 100%;
+            box-shadow: 5px 5px 5px 5px gray;
+            border-radius: 10px;
+            margin-bottom: 1em;
+        }
+        #item_category{
+            margin-top: -10px;
+            position: absolute;
+        }
+        #left_grid{
+            width: 50%;
+        }
+        #right_grid{
+            width: 50%;
+        }
+        #item_description{
+            margin: 2em;
+            font-family: Arial;
+            font-size: 20px;
+        }
+        #comments_div{
+            margin-top: 5em;
+        }
+        #grid{
+            display: grid;
+            grid-template-columns: 100% 10%;
+        }
+        #send_icon{
+            color: white;
+            font-size: 3em;
+        }
+        #submit_comment{
+            height: auto;
+            margin-top: 13%;
+            margin-left: -100%;
+            width: 100%;
+            background-color: rgb(0, 119, 255);
+            border-radius: 0 1em 1em 0;
+            border-color: white;
+            z-index: 1;
+        }
+        #comment{
+            padding-right:12%;    
+            border-radius: 1em;
+        }
+        .commented_text{            
+            font-family: Arial;
+            font-size: 20px;
+            border-bottom: 0.5px solid gray;
+            margin-top: 2em;
+        }
+        #btn_grids{
+            display: grid;
+            grid-template-columns: auto auto;
+            margin-top: 2em;
+        }
+        #buy_item_form{
+            text-align: right;
+        }
+        #message_div{
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div id="grid" class="d-flex flex-wrap">
+        <div id="left_grid" class="p-2">
+            <img id="item_image" class="animate__animated animate__fadeIn" src="../{{info.image_url}}">
+            <script>console.log("{{info.image_url}}");</script>
+            <h1 id="item_price">${{info.price}}</h1>
+            <h2 id="item_title">{{info.title}}</h2>
+            <small id="item_category">{{info.category.Item_Category}}</small>
+            {% if user.is_authenticated %}
+                <div id="btn_grids">
+                    {% if cart == "True" %}
+                        <form action="{% url 'add_to_cart' %}" method="POST" id="add_to_cart_form">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{info.id}}" id="item_id">
+                            <input type="hidden" name="username" value="{{user.username}}" id="username">
+                            <button type="submit" class="btn btn-warning">Add to cart <i class="fa fa-shopping-cart" id="cart_icon"></i></button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'remove_from_cart' %}" method="POST" id="add_to_cart_form">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{info.id}}" id="item_id">
+                            <input type="hidden" name="username" value="{{user.username}}" id="username">
+                            <button type="submit" class="btn btn-danger">Remove from cart <i class="fa fa-shopping-cart" id="cart_icon"></i></button>
+                        </form>
+                    {% endif %}
+                    
+                    <form action="{% url 'buy_item' %}" method="post" id="buy_item_form">
+                        {% csrf_token %}
+                        <input type="hidden" id="buy_item_id" name="item_id" value="{{info.id}}">
+                        <button type="submit" class="btn btn-success">Buy <i id = "shopping_bag_icon" class="fa">&#xf290;</i></button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+        <div id="right_grid" class="p-2">
+            <pre id="item_description">{{info.description}}</pre>
+        </div>
+    </div>
+    <div id="message_div">
+        <div id="message" class="animate__animated alert"></div>
+    </div>
+    <div id="comments_div">
+        <input type="hidden" id="item_id" value="{{info.id}}">
+        {% if user.is_authenticated %}
+            <h2>Comments</h2>
+            <hr>
+            <div id="add_comment_section">
+                <form id="add_comment_form" action="{% url 'add_comment' %}" method="POST">  
+                    {% csrf_token %}
+                    <input type="hidden" id="user" value="{{user.username}}">
+                    <div id="grid">
+                        <textarea class="form-control" name="" id="comment" rows="4" placeholder="Add comment here ..."></textarea>
+                        <button id="submit_comment" type="button">
+                            <i class="material-icons" id="send_icon">&#xe163;</i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    <div id="display_comment_div"></div>
+    <script>
+        console.log(`{{cart}}`);
+        $(document).ready(()=>{
+            get_comment();
+            buy_item();
+        });
+        
+
+        function buy_item(){
+            let request = $.ajax({
+                url: "{% url 'buy_item' info.id %}", 
+                type: "get",
+            }).done((result)=>{
+                let quantity = parseInt(result.quantity);
+                if(quantity === 0){
+                    $("#buy_item_form").hide();
+                    let message_div = $("#message_div");
+                    let message = $("#message");
+                    message_div.show();
+                    message.html("Item is out of stock for now.");
+                    message.addClass("alert-danger");
+                    message.addClass("animate__fadeInUp");
+                }
+            });
+        }
+        function get_comment(){
+            $("#display_comment_div").html("");
+            let comments_req = $.get(`/get_comments/${$("#item_id").val()}`, data=>{
+                let comments = JSON.parse(data.comments);
+                comments.forEach(element => {
+                    let comment = element.fields.comment
+                    let pre_tag = document.createElement("pre");
+                    pre_tag.classList.add("commented_text");
+                    pre_tag.innerHTML = comment;
+                    $("#display_comment_div").append(pre_tag);
+                });
+            });
+        }
+        
+        
+        $("#submit_comment").click(()=>{
+            let comment = $("#comment").val();
+            let username = $("#user").val()
+            let item_id = $("#item_id").val();
+            if(comment !== ""){
+                let csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                $.ajaxSetup({
+                    headers:{ 'X-CSRFTOKEN': csrftoken}
+                });
+                let request = $.ajax({
+                    url: "{% url 'add_comment' %}", 
+                    type: "POST",
+                    data:{
+                        "comment": comment,
+                        "username": username,
+                        "item_id":item_id
+                    },
+                    datatype: 'json'
+                }).done(()=>{
+                    get_comment();
+                });
+                return false;
+            }
+        });
+    </script>
+{% endblock %}

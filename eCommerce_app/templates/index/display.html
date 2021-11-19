@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block style %}
+    <style>
+        .p-2{
+            padding: 10px;
+        }
+        .item_card{         
+            text-align: center;
+            margin: 10px;
+            background-color: transparent;
+            z-index: 1;   
+        }
+        .item_card>img{
+            height: auto;
+            width: 200px;
+            max-width: 200px;
+        }
+        .price{
+            font-size: 20px;
+        }
+        @keyframes hover_card {
+            to{
+                box-shadow: 10px 10px 10px 10px gray;
+                padding: 10px;
+                border-radius: 20px;
+            }
+        }
+        .item_card:hover{
+            animation-name: hover_card;
+            animation-duration: 1s;
+            animation-fill-mode: forwards;
+        }
+        #grid{
+            display: grid;
+            grid-template-columns: auto auto;
+        }
+        #part2>form>button{
+            float: right;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="grid">
+        <div id="part1">
+            <h1>{{title}}</h1>
+        </div>
+        {% if title == "My Cart" and items|length != 0 %}
+            <div id="part2">
+                <form action="{% url 'buy_item' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="username" value="{{user.username}}">
+                    <input type="hidden" name="cart" value="cart">
+                    <button type="submit" id="buy_btn1" class="btn btn-success">
+                        Check out &emsp;<i id = "shopping_bag_icon" class="fa">&#xf290;</i>
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    <div class="d-flex flex-wrap">
+        {% if title != "My Items" %}
+            {% include 'index/items_loop.html' %}
+            <script>console.log(`{{items | length}}`)</script>
+        {% else %}
+            {% include 'index/my_items_loop.html' %}
+        {% endif %}
+    </div>
+    {% if title == "My Cart" and items|length != 0 %}
+        <div id="part2">
+            <form action="{% url 'buy_item' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="username" value="{{user.username}}">
+                <input type="hidden" name="cart" value="cart">
+                <button type="submit" id="buy_btn1" class="btn btn-success">
+                    Check out &emsp;<i id = "shopping_bag_icon" class="fa">&#xf290;</i>
+                </button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}

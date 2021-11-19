@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Seller Agent</title>
+    <!-- css file for animations -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <!-- local CSS file -->
+    <!-- <link href="./style.css" rel="stylesheet"> -->
+    <!-- load CSS static file-->
+    <link href="{% static 'style.css' %}" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/htmx.org@1.6.0"></script>
+    <script src="https://unpkg.com/htmx.org@1.6.0" integrity="sha384-G4dtlRlMBrk5fEiRXDsLjriPo8Qk5ZeHVVxS8KhX6D7I9XXJlNqbdvRlp9/glk5D" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+      crossorigin="anonymous"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>	
+    <style>
+      input, textarea, select{
+        margin-top: 1em;
+      }
+      form{
+        margin-bottom: 1em;
+        margin-right: 1em;
+      }
+      #item_name_form_btn{
+        height: fit-content;
+        margin-top: 1em;
+      }
+    </style>
+    {% block style %}{% endblock %}
+  </head>
+  <body>
+    <!-- Navigation bar starts -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'index' %}"><strong>Sellers Agent</strong></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                aria-current="page"
+                href="{% url 'index' %}"
+                >Home</a
+              >
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'show_cart' %}">My Cart</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'my_items' %}">My Items</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'new_item' %}">New Item</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+            </li>
+            {% endif %}
+            <li class="nav-item dropdown" id="category_dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Categories
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{% url 'category' 'All' %}">All</a>
+                <a class="dropdown-item" href="{% url 'category' 'Electronics' %}">Electronics</a>
+                <a class="dropdown-item" href="{% url 'category' 'Toys' %}">Toys</a>
+                <a class="dropdown-item" href="{% url 'category' 'Fashion' %}">Fashion</a>
+                <a class="dropdown-item" href="{% url 'category' 'Home' %}">Home</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'category' 'hightolow' %}">Price: High to Low</a>
+                <a class="dropdown-item" href="{% url 'category' 'lowtohigh' %}">Price: Low to High</a>
+                
+              </div>
+            </li>
+          </ul>
+          <div id="filter_form_div">
+            <form action='{% url "item_name_filter" %}' method="post" id="name_filter_form" class="d-flex">
+              {% csrf_token %}
+              <input type="hidden" name="path" value="{{request.path}}">
+              <input class="form-control me-2" name="item_name" type="search" id="item_name" placeholder="Item Name" aria-label="Search">
+              <button id="item_name_form_btn" class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+          </div>
+          <div>
+            {% if user.is_authenticated %} Signed in as {{user.username}} {% else %} Not signed in {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+    <script>
+       $(document).ready(function(){
+        $('.dropdown-toggle').dropdown()
+      });
+      let path = "{{request.path}}";
+      let paths = path.split("/");
+      if(paths[1] === "" || paths[1] === "filter" || paths[1] === "category"){
+      }else{
+        $("#filter_form_div").hide();
+        $("#category_dropdown").hide();
+      }
+    </script>
+    <!-- Navigation bar ends -->
+    <!-- body block -->
+    <div id="body">{% block body %}{% endblock %}</div>
+  </body>
+</html>

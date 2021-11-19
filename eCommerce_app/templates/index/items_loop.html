@@ -1,0 +1,28 @@
+{% for j in items %}
+    {% for i in j %}
+        {% if i.quantity != 0 %}
+            <div class="p-2 item_card" id="{{i.id}}">
+                <img src="../{{i.image_url}}" id="{{i.id}}">
+                <h3 id="{{i.id}}">{{i.title | capfirst}}</h3>
+                <p id="{{i.id}}"><small id="{{i.id}}">$</small><span id="{{i.id}}" class="price">{{i.price}}</span></p>
+            </div>
+            {% if forloop.last %}
+                {% if  page != 0%}
+                    <div hx-get="{{request.path}}?page={{page}}"
+                    hx-trigger="revealed"
+                    hx-swap="afterend"></div>
+                {% endif %}
+            {% endif %}
+            <script>
+                $(document).ready(()=>{
+                    $(".item_card").click(e=>{
+                        let ele = $(e.target);
+                        let id = (ele.attr('id'));     
+                        window.location.href = "/details/"+id;               
+                    })
+                });
+            </script>
+                
+        {% endif %}
+    {% endfor %}
+{% endfor %}
