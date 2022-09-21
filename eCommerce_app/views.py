@@ -174,9 +174,12 @@ def details(request, item_id):
     try:
         item_details = SI.objects.get(id=item_id)
         user = request.user
-        cart_items = Cart.objects.filter(user = user, item = item_details)
-        in_cart = ((str(cart_items)) == "<QuerySet []>")
-        return render(request, "index/details.html", {"info": item_details, "cart": f"{in_cart}"})
+        if user.__str__() == "AnonymousUser":
+            return render(request, "index/details.html", {"info": item_details})
+        else:
+            cart_items = Cart.objects.filter(user = user, item = item_details)
+            in_cart = ((str(cart_items)) == "<QuerySet []>")
+            return render(request, "index/details.html", {"info": item_details, "cart": f"{in_cart}"})
     except SI.DoesNotExist:
         raise Http404("Item does not exist.")
 
